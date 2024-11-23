@@ -62,7 +62,7 @@ This project was generated from [@cjolowicz]'s [uv hypermodern python cookiecutt
 
 [@cjolowicz]: https://github.com/cjolowicz
 [pypi]: https://pypi.org/
-[uv hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-uv-hypermodern-python
+[uv hypermodern python cookiecutter]: https://github.com/bosd/cookiecutter-uv-hypermodern-python
 [file an issue]: https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}/issues
 [pip]: https://pip.pypa.io/
 
