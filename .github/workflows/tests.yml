@@ -16,20 +16,20 @@ jobs:
     name: Python ${{ matrix.python-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          path: cookiecutter-hypermodern-python
+          path: cookiecutter-uv-hypermodern-python
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tools using pip
-        working-directory: cookiecutter-hypermodern-python
+        working-directory: cookiecutter-uv-hypermodern-python
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt cookiecutter
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
       - name: Generate project using Cookiecutter
-        run: cookiecutter --no-input cookiecutter-hypermodern-python
+        run: cookiecutter --no-input cookiecutter-uv-hypermodern-python
       - name: Create git repository
         if: matrix.os != 'windows-latest'
         run: |
@@ -54,10 +54,11 @@ jobs:
         working-directory: hypermodern-python
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-        with:
-          version: "v3"
         working-directory: hypermodern-python
         run: uv --version
+      - name: Create uv environment
+        run: uv venv
+        working-directory: hypermodern-python
       - name: Install dependencies using uv
         run: uv pip install
         working-directory: hypermodern-python

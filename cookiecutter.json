@@ -1,5 +1,5 @@
 {
-  "project_name": "hypermodern-python",
+  "project_name": "uv-hypermodern-python",
   "package_name": "{{ cookiecutter.project_name.replace('-', '_') }}",
   "friendly_name": "{{ cookiecutter.project_name.replace('-', ' ').title() }}",
   "author": "Claudio Jolowicz",
