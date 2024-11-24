@@ -9,6 +9,7 @@ from textwrap import dedent
 
 import nox
 
+nox.options.default_venv_backend = "uv"
 
 package = "{{cookiecutter.package_name}}"
 python_versions = ["3.12", "3.11", "3.10", "3.9", "3.8"]
@@ -84,7 +85,7 @@ def activate_virtualenv_in_precommit_hooks(session: nox.Session) -> None:
         text = hook.read_text()
 
         if not any(
-            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
+            (Path("A") == Path("a") and bindir.lower() in text.lower()) or bindir in text
             for bindir in bindirs
         ):
             continue
@@ -107,12 +108,7 @@ def precommit(session: nox.Session) -> None:
         "--hook-stage=manual",
         "--show-diff-on-failure",
     ]
-    session.install(
-        "ruff",
-        "pre-commit",
-        "pre-commit-hooks",
-        "pydoclint",
-    )
+    session.run("uv", "sync", "--group", "dev", "--group", "lint", external=True)
     session.run("pre-commit", *args)
     if args and args[0] == "install":
         activate_virtualenv_in_precommit_hooks(session)
@@ -121,17 +117,25 @@ def precommit(session: nox.Session) -> None:
 @nox.session(python=python_versions[0])
 def safety(session: nox.Session) -> None:
     """Scan dependencies for insecure packages."""
-    session.run("uv", "requirements", external=True) # Use uv to generate requirements.txt
-    session.install("safety")
-    session.run("safety", "check", "--full-report", f"--file=requirements.txt", external=True)
+    session.run("uv", "export", "-o", "requirements.txt", external=True) # Use uv to generate requirements.txt
+    session.run("uv", "sync", "--group", "dev", "--group", "safety", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
+    session.run("safety", "check", "--full-report", f"--file=requirements.txt", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
 
 
 @nox.session(python=python_versions)
 def mypy(session: nox.Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests", "docs/conf.py"]
-    session.run("uv", "pip", "install", "-e", ".", external=True) # Use uv pip install
-    session.install("mypy", "pytest")
+    session.run(
+        "uv",
+        "sync",
+        "--group",
+        "dev",
+        "--group",
+        "mypy",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+        external=True,
+    )
     session.run("mypy", *args)
     if not session.posargs:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
@@ -140,33 +144,46 @@ def mypy(session: nox.Session) -> None:
 @nox.session(python=python_versions)
 def tests(session: nox.Session) -> None:
     """Run the test suite."""
-    session.run("uv", "pip", "install", "-e", ".", external=True)
-    session.install("coverage[toml]", "pytest", "pygments")
+    session.run_install(
+        "uv",
+        "sync",
+        "--group",
+        "dev",
+        "--group",
+        "lint",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+    session.env["PYTHONPATH"] = "src"
+
     try:
-        session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
+        session.run(
+            "coverage",
+            "run",
+            "--parallel",
+            "-m",
+            "pytest",
+            external=True,
+            env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+            *session.posargs,
+        )
     finally:
         if session.interactive:
             session.notify("coverage", posargs=[])
-
 
 @nox.session(python=python_versions[0])
 def coverage(session: nox.Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report"]
-
-    session.install("coverage[toml]")
-
+    session.run("uv", "pip", "install", "coverage[toml]", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
     if not session.posargs and any(Path().glob(".coverage.*")):
         session.run("coverage", "combine")
 
     session.run("coverage", *args)
 
-
 @nox.session(python=python_versions[0])
 def typeguard(session: nox.Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.run("uv", "pip", "install", "-e", ".", external=True)
-    session.install("pytest", "typeguard", "pygments")
+    session.run("uv", "sync", "--group", "dev", "--group", "typeguard", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
@@ -180,8 +197,7 @@ def xdoctest(session: nox.Session) -> None:
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
-    session.run("uv", "pip", "install", "-e", ".", external=True)
-    session.install("xdoctest[colors]")
+    session.run("uv", "sync", "--group", "dev", "--group", "xdoctest", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
     session.run("python", "-m", "xdoctest", *args)
 
 
@@ -192,8 +208,7 @@ def docs_build(session: nox.Session) -> None:
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
-    session.run("uv", "pip", "install", "-e", ".", external=True)
-    session.install("sphinx", "sphinx-click", "furo", "myst-parser")
+    session.run("uv", "sync", "--group", "docs", "--group", "dev", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
@@ -206,8 +221,7 @@ def docs_build(session: nox.Session) -> None:
 def docs(session: nox.Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
-    session.run("uv", "pip", "install", "-e", ".", external=True)
-    session.install("sphinx", "sphinx-autobuild", "sphinx-click", "furo", "myst-parser")
+    session.run("uv", "sync", "--group", "doc", external=True)
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
