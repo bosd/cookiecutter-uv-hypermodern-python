@@ -19,33 +19,54 @@ Documentation = "https://{{cookiecutter.project_name}}.readthedocs.io"
 Changelog = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}/releases"
 {% if cookiecutter.package_name != cookiecutter.project_name.replace('-', '_') -%}
 
+dependencies = [
+"click >=8.0.1",
+"dateparser >= 1.2.0",
+"PyYAML >= 6.0",
+]
+
+[dependency-groups]
+dev = [
+  "coverage[toml] >= 6.2",
+  "pre-commit >=2.16.0",
+  "pre-commit-hooks >=4.1.0",
+  "pytest >=6.2.5",
+  "pygments >=2.10.0",
+]
+lint = [
+  "ruff >=0.0.274",
+  "pydoclint >=0.0.0",
+]
+docs = [
+  "furo >=2021.11.12",
+  "myst-parser == 3.0.1",
+  "sphinx >= 4.3.2",
+  "sphinx-autobuild >=2021.3.14",
+  "sphinx-click >=3.0.2",
+]
+mypy = [
+  "mypy >=0.930"
+]
+safety = [
+  "safety >=2.2.3"
+]
+typeguard = [
+  "typeguard >=2.13.3"
+]
+xdoctest = [
+  "xdoctest[colors] >=0.15.10"
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 {% endif -%}
 
 [tool.uv]
-python = "3.9"
+package = true
 
-[tool.uv.dependencies]
-click = ">=8.0.1"
+[project.scripts]
+invoice2data = "invoice2data.__main__:main"
 
-[tool.uv.dev-dependencies]
-coverage = {extras = ["toml"], version = ">=6.2"}
-furo = ">=2021.11.12"
-mypy = ">=0.930"
-myst-parser = ">=0.16.1"
-pre-commit = ">=2.16.0"
-pre-commit-hooks = ">=4.1.0"
-pydoclint = "^0.4.1"
-pytest = ">=6.2.5"
-ruff = ">=0.4.6"
-safety = ">=1.10.3"
-sphinx = ">=4.3.2"
-sphinx-autobuild = ">=2021.3.14"
-sphinx-click = ">=6.0.0"
-typeguard = ">=2.13.3"
-xdoctest = {extras = ["colors"], version = ">=0.15.10"}
-Pygments = ">=2.10.0"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
@@ -115,5 +136,5 @@ convention = "google"
 
 [tool.pydoclint]
 style = 'google'
-exclude = '\.git|\.nox'
+exclude = '\.git|\.nox|noxfile.py'
 arg-type-hints-in-docstring = false
