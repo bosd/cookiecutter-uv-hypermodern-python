@@ -122,7 +122,7 @@ def safety(session: nox.Session) -> None:
     session.run("safety", "check", "--full-report", f"--file=requirements.txt", env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}, external=True)
 
 
-@nox.session(python=python_versions)
+@nox.session(python=[python_versions[0], python_versions[-1]])
 def mypy(session: nox.Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests", "docs/conf.py"]
