@@ -3,4 +3,4 @@ cookiecutter==2.6.0
 cutty==0.18.0
 nox==2024.10.09
 pre-commit==4.0.1
-virtualenv==20.27.1
+virtualenv==20.28.0
