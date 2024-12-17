@@ -116,7 +116,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv install
+          uv sync --group dev
 
       - name: Download coverage data
         uses: actions/download-artifact@v4
@@ -126,13 +126,14 @@ jobs:
 
       - name: Combine coverage data and display human readable report
         run: |
-          uv run nox --session=coverage
+          uvx nox --session=coverage
 
       - name: Create coverage report
         run: |
-          uv run nox --session=coverage -- xml
+          uvx nox --session=coverage -- xml -i
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4.5.0
         env:
           CODECOV_TOKEN: {{ "${{ secrets.CODECOV_TOKEN }}" }}
+          file: ./coverage.xml
