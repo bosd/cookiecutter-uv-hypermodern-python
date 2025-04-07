@@ -43,17 +43,22 @@ $ git commit
 
 ## Running
 
-Run the command-line interface from the source tree:
+### Install uv Environment
 
 ```console
-$ uv install
-$ uv run <project>
+$ uv venv
+$ uv sync
 ```
 
-Run an interactive Python session:
+### Run the command-line interface from the source tree:
 
 ```console
-$ uv install
+$ uv run src/<project>
+```
+
+### Run an interactive Python session:
+
+```console
 $ uv run python
 ```
 
