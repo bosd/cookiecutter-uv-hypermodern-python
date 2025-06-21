@@ -19,6 +19,8 @@ linkcheck_ignore = [
     "https://github.com/bosd/cookiecutter-uv-hypermodern-python/releases/tag/",
     "https://cookiecutter-hypermodern-python.readthedocs.io",
     "https://badgen.net/badge/status/alpha/d8624d",
+    "https://www.gnu.org/software/bash/",
+    "https://docs.astral.sh/uv/reference/build_failures/#why-does-uv-build-a-package",
 ]
 myst_enable_extensions = [
     "colon_fence",
