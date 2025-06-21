@@ -6,41 +6,44 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - { python-version: "3.13", os: ubuntu-latest }
           - { python-version: "3.12", os: ubuntu-latest }
           - { python-version: "3.12", os: windows-latest }
           - { python-version: "3.12", os: macos-latest }
           - { python-version: "3.11", os: ubuntu-latest }
           - { python-version: "3.10", os: ubuntu-latest }
           - { python-version: "3.9", os: ubuntu-latest }
-          - { python-version: "3.8", os: ubuntu-latest }
     name: Python ${{ matrix.python-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        # Explicitly set fetch-depth to 0 to ensure a full clone.
+        # This is usually not needed but can rule out certain issues.
         with:
-          path: cookiecutter-uv-hypermodern-python
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install tools using pip
-        working-directory: cookiecutter-uv-hypermodern-python
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt cookiecutter
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
       - name: Generate project using Cookiecutter
-        run: cookiecutter --no-input cookiecutter-uv-hypermodern-python
+        run: cookiecutter --no-input . --output-dir .
       - name: Create git repository
         if: matrix.os != 'windows-latest'
+        working-directory: uv-hypermodern-python
         run: |
           git init
           git config --local user.name "GitHub Action"
           git config --local user.email "action@github.com"
           git add .
           git commit --message="Initial import"
-        working-directory: hypermodern-python
       - name: Create git repository (Windows)
         if: matrix.os == 'windows-latest'
+        working-directory: uv-hypermodern-python
         run: |
           git init
           git config --local user.name "GitHub Action"
@@ -51,38 +54,40 @@ jobs:
           $ErrorActionPreference = "Stop"
           git add --renormalize .
           git commit --message="Initial import"
-        working-directory: hypermodern-python
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Create uv environment
+        working-directory: uv-hypermodern-python
         run: uv venv
-        working-directory: hypermodern-python
       - name: Install dependencies using uv
-        run: uv pip install
-        working-directory: hypermodern-python
+        working-directory: uv-hypermodern-python
+        run: uv pip install .
       - name: Compute cache key for pre-commit
         if: matrix.os != 'windows-latest'
         id: cache_key
         shell: python
+        working-directory: uv-hypermodern-python
         run: |
           import hashlib
           import sys
+          import os
 
           python = "py{}.{}".format(*sys.version_info[:2])
           payload = sys.version.encode() + sys.executable.encode()
           digest = hashlib.sha256(payload).hexdigest()
           result = "${{ runner.os }}-{}-{}-pre-commit".format(python, digest)
 
-          print("::set-output name=result::{}".format(result))
-        working-directory: hypermodern-python
+          print(f"cache_key_result={result}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+
       - uses: actions/cache@v4
         if: matrix.os != 'windows-latest'
         with:
           path: ~/.cache/pre-commit
-          key: ${{ steps.cache_key.outputs.result }}-${{ hashFiles('hypermodern-python/.pre-commit-config.yaml') }}
+          # Update to use the correct output name: cache_key_result
+          key: ${{ steps.cache_key.outputs.cache_key_result }}-${{ hashFiles('hypermodern-python/.pre-commit-config.yaml') }}
           restore-keys: |
-            ${{ steps.cache_key.outputs.result }}-
-        working-directory: hypermodern-python
+            ${{ steps.cache_key.outputs.cache_key_result }}-
+        # Note: actions/cache does not support `working-directory`
       - name: Run test suite using Nox
+        working-directory: uv-hypermodern-python
         run: uv run nox --force-color --python=${{ matrix.python-version }}
-        working-directory: hypermodern-python
