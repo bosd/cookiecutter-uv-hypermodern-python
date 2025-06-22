@@ -5,8 +5,8 @@ on:
       - main
 concurrency: serialize
 env:
-  TEMPLATE: cookiecutter-hypermodern-python
-  PROJECT: cookiecutter-hypermodern-python-instance
+  TEMPLATE: cookiecutter-uv-hypermodern-python
+  PROJECT: cookiecutter-uv-hypermodern-python
   jobs:
     instance:
       runs-on: ubuntu-latest
