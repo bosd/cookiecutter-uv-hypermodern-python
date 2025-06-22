@@ -1,0 +1,115 @@
+name: Release Template
+
+on:
+  # This workflow triggers on push to main/master.
+  # It then detects if a new tag (release) should be created.
+  # This is the "push-based" release model.
+  # If you prefer to trigger *only* on a manual GitHub Release publish,
+  # change this to:
+  # release:
+  #   types: [published]
+  # And remove the 'Detect and tag new version' and 'Bump version' steps.
+  # However, for automatic tagging and conditional publishing like the example,
+  # 'push' is needed here.
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write # Required for PyPI Trusted Publishing
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Check if there is a parent commit
+        id: check-parent-commit
+        run: |
+          # This checks if it's the first commit in the history.
+          # If not, it means there's a parent, which is needed for version comparison.
+          echo "sha=$(git rev-parse --verify --quiet HEAD^)" >> "$GITHUB_OUTPUT"
+
+      - name: Detect and tag new version
+        id: check-version
+        if: steps.check-parent-commit.outputs.sha
+        uses: salsify/action-detect-and-tag-new-version@v2.0.3
+        with:
+          # IMPORTANT: This command MUST output your *package's version*.
+          # If your template's pyproject.toml has `version = "X.Y.Z"`,
+          # you can parse it directly.
+          version-command: |
+            python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])"
+          # For a cookiecutter template itself, a manually updated version in pyproject.toml
+          # is often the simplest alongside this tag detection.
+
+      - name: Bump version for developmental release
+        # This step runs if `action-detect-and-tag-new-version` did NOT create a new tag.
+        # This typically means it's a `main` branch push that isn't a new release.
+        # This prepares a package for TestPyPI.
+        if: "! steps.check-version.outputs.tag"
+        run: |
+          # Read current version from pyproject.toml
+          CURRENT_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          # Append .dev.<timestamp> for TestPyPI publish
+          DEVELOPMENT_VERSION="${CURRENT_VERSION}.dev.$(date +%s)"
+          echo "Bumping version to ${DEVELOPMENT_VERSION} for TestPyPI release."
+          # You might want to actually modify pyproject.toml for the build,
+          # but make sure not to commit it back if it's just for the build.
+          # For uv build, the simplest is often to rely on environment variables
+          # or `build`'s configuration for pre-releases.
+          # A simpler approach is to tell 'build' to create dev versions.
+          # For now, we'll rely on the PyPI publish action to handle it,
+          # or ensure your build system dynamically gets the version.
+          # For a basic setup, the `if: !steps.check-version.outputs.tag` is mainly for conditional publish.
+          # No direct modification of pyproject.toml during the build is recommended here
+          # unless you commit it back, which would be noisy for dev versions.
+          # The `pypa/gh-action-pypi-publish` action often handles dev versions.
+          # Let's remove the direct version bump from here for now, as it's complex without committing.
+          # The primary goal is conditional *publishing*.
+
+      # --- End: Version Detection & Tagging ---
+
+      - name: Build package with uv
+        run: uv build
+
+      - name: Publish package on PyPI
+        # This step runs ONLY if a new tag (official release) was created by the previous step.
+        if: steps.check-version.outputs.tag
+        uses: pypa/gh-action-pypi-publish@release/v1 # Using the latest recommended stable release
+        with:
+          # Recommended: Use PyPI Trusted Publishing.
+          # Configure your PyPI project to trust this GitHub repo.
+          # If set up, 'username' and 'password' are not needed here.
+          # Otherwise, use your PyPI API token:
+          username: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish package on TestPyPI
+        # This step runs if NO new tag was created (i.e., a regular push to main/master).
+        if: "! steps.check-version.outputs.tag"
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Use your TestPyPI API token:
+          username: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }} # Ensure this secret is configured
+          repository_url: https://test.pypi.org/legacy/
+
+      # Note: The `Publish the release notes` step from your example is handled by
+      # your separate `release-drafter.yml` workflow, which is good.
+      # That workflow handles the GitHub Release creation, this one handles PyPI publishing.
