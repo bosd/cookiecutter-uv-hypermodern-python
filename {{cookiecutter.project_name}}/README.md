@@ -12,7 +12,6 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Ruff codestyle][ruff badge]][ruff project]
 
-
 [pypi status]: https://pypi.org/project/{{cookiecutter.project_name}}/
 [read the docs]: https://{{cookiecutter.project_name}}.readthedocs.io/
 [tests]: https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}/actions?workflow=Tests
