@@ -48,7 +48,7 @@
 ## Usage
 
 ```console
-cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2022.6.3
+cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2024.11.23
 ```
 
 ## Features
