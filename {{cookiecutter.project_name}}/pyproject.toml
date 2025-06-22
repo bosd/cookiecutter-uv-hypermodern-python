@@ -12,18 +12,16 @@ classifiers = [
   "{{cookiecutter.development_status}}",
 ]
 
+dependencies = [
+"click >=8.0.1",
+]
+
+
 [project.urls]
 Homepage = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}"
 Repository = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}"
 Documentation = "https://{{cookiecutter.project_name}}.readthedocs.io"
 Changelog = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.project_name}}/releases"
-{% if cookiecutter.package_name != cookiecutter.project_name.replace('-', '_') -%}
-
-dependencies = [
-"click >=8.0.1",
-"dateparser >= 1.2.0",
-"PyYAML >= 6.0",
-]
 
 [dependency-groups]
 dev = [
@@ -59,14 +57,12 @@ xdoctest = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-{% endif -%}
 
 [tool.uv]
 package = true
 
 [project.scripts]
-invoice2data = "invoice2data.__main__:main"
-
+{{cookiecutter.project_name}} = "{{cookiecutter.package_name}}.__main__:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
