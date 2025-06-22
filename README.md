@@ -71,7 +71,6 @@ cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2022.6.3
 - Command-line interface with [Click]
 - Static type-checking with [mypy]
 - Runtime type-checking with [Typeguard]
-- Security audit with [Safety]
 - Check documentation examples with [xdoctest]
 - Generate API documentation with [autodoc] and [napoleon]
 - Generate command-line reference with [sphinx-click]
@@ -99,7 +98,6 @@ The template supports Python 3.8, 3.8, 3.9, 3.10, 3.11 and 3.12.
 [read the docs]: https://readthedocs.org/
 [release drafter]: https://github.com/release-drafter/release-drafter
 [ruff]: https://github.com/astral-sh/ruff
-[safety]: https://github.com/pyupio/safety
 [sphinx]: https://www.sphinx-doc.org/
 [sphinx-click]: https://sphinx-click.readthedocs.io/
 [testpypi]: https://test.pypi.org/

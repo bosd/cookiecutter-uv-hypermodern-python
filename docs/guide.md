@@ -843,8 +843,6 @@ See the table below for an overview of the dependencies of generated projects:
   - Pygments is a syntax highlighting package written in Python.
 - - [pytest]
   - pytest: simple powerful testing with Python
-- - [safety]
-  - Checks installed dependencies for known vulnerabilities.
 - - [sphinx]
   - Python documentation generator
 - - [sphinx-autobuild]
@@ -1167,10 +1165,6 @@ The following table gives an overview of the available Nox sessions:
   - Lint with [pre-commit]
   - `3.12`
   - ✓
-- - [safety](the-safety-session)
-  - Scan dependencies with [Safety]
-  - `3.12`
-  - ✓
 - - [tests](the-tests-session)
   - Run tests with [pytest]
   - `3.8` … `3.12`
@@ -1273,24 +1267,6 @@ so they run automatically on every commit you make:
 ```console
 $ nox --session=pre-commit -- install
 ```
-
-(the-safety-session)=
-
-### The safety session
-
-[Safety] checks the dependencies of your project for known security vulnerabilities,
-using a curated database of insecure Python packages.
-The {{ HPC }} uses the [uv requirements] command
-to generate a [requirements file],
-for consumption by Safety.
-
-Run [Safety] using the `safety` session:
-
-```console
-$ nox --session=safety
-```
-
-This session always runs with the current stable release of Python.
 
 (the-tests-session)=
 
@@ -2045,9 +2021,6 @@ as shown in the table below:
 - - [pre-commit](the-pre-commit-session)
   - Ubuntu
   - 3.12
-- - [safety](the-safety-session)
-  - Ubuntu
-  - 3.12
 - - [mypy](the-mypy-session)
   - Ubuntu
   - 3.12, 3.11, 3.10, 3.9, 3.8
@@ -2466,7 +2439,6 @@ You can also read the articles on [this blog][hypermodern python blog].
 [requirements file]: https://pip.pypa.io/en/stable/user_guide/#requirements-files
 [restructuredtext]: https://docutils.sourceforge.io/rst.html
 [ruff]: https://github.com/astral-sh/ruff
-[safety]: https://github.com/pyupio/safety
 [salsify/action-detect-and-tag-new-version]: https://github.com/salsify/action-detect-and-tag-new-version
 [schlawack semantic]: https://hynek.me/articles/semver-will-not-save-you/
 [schreiner constraints]: https://iscinumpy.dev/post/bound-version-constraints/

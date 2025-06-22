@@ -45,9 +45,6 @@ docs = [
 mypy = [
   "mypy >=0.930"
 ]
-safety = [
-  "safety >=2.2.3"
-]
 typeguard = [
   "typeguard >=2.13.3"
 ]

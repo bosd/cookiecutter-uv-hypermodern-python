@@ -16,7 +16,6 @@ python_versions = ["3.13", "3.12", "3.11", "3.10", "3.9"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
-    "safety",
     "mypy",
     "tests",
     "typeguard",
@@ -115,32 +114,6 @@ def precommit(session: nox.Session) -> None:
     session.run("pre-commit", *args, external=True)
     if args and args[0] == "install":
         activate_virtualenv_in_precommit_hooks(session)
-
-
-@nox.session(python=python_versions[0])
-def safety(session: nox.Session) -> None:
-    """Scan dependencies for insecure packages."""
-    # Use uv to generate requirements.txt
-    session.run("uv", "export", "-o", "requirements.txt", external=True)
-    session.run(
-        "uv",
-        "sync",
-        "--group",
-        "dev",
-        "--group",
-        "safety",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-        external=True,
-    )
-    session.run(
-        "safety",
-        "scan",
-        "--full-report",
-        "--file=requirements.txt",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-        external=True,
-    )
-
 
 
 @nox.session(python=[python_versions[0], python_versions[-1]])
