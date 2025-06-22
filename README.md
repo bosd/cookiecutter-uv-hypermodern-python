@@ -76,7 +76,7 @@ cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2022.6.3
 - Generate command-line reference with [sphinx-click]
 - Manage project labels with [GitHub Labeler]
 
-The template supports Python 3.8, 3.8, 3.9, 3.10, 3.11 and 3.12.
+The template supports Python 3.9, 3.10, 3.11, 3.12 and 3.13.
 
 [autodoc]: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
 [click]: https://click.palletsprojects.com/
