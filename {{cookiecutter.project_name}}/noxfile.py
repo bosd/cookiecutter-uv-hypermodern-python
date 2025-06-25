@@ -12,7 +12,7 @@ import nox
 nox.options.default_venv_backend = "uv"
 
 package = "{{cookiecutter.package_name}}"
-python_versions = ["3.13", "3.12", "3.11", "3.10", "3.9"]
+python_versions = ["3.12", "3.13", "3.11", "3.10", "3.9"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -188,17 +188,9 @@ def coverage(session: nox.Session) -> None:
 @nox.session(python=python_versions[0])
 def typeguard(session: nox.Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.run(
-        "uv",
-        "sync",
-        "--group",
-        "dev",
-        "--group",
-        "typeguard",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-        external=True,
-    )
-    session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
+    session.install("--group", "dev", "--group", "typeguard")
+    session.install("-e", ".")
+    session.run("pytest", "--typeguard-packages", package, *session.posargs)
 
 
 @nox.session(python=python_versions)
@@ -210,18 +202,9 @@ def xdoctest(session: nox.Session) -> None:
         args = [f"--modname={package}", "--command=all"]
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
-
-    session.run(
-        "uv",
-        "sync",
-        "--group",
-        "dev",
-        "--group",
-        "xdoctest",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-        external=True,
-    )
-    session.run("python", "-m", "xdoctest", *args)
+    session.install("--group", "dev", "--group", "xdoctest")
+    session.install("-e", ".")
+    session.run("xdoctest", package, *args)
 
 
 @nox.session(name="docs-build", python=python_versions[0])
@@ -230,17 +213,8 @@ def docs_build(session: nox.Session) -> None:
     args = session.posargs or ["docs", "docs/_build"]
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
-
-    session.run(
-        "uv",
-        "sync",
-        "--group",
-        "docs",
-        "--group",
-        "dev",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-        external=True,
-    )
+    session.install("--group", "dev", "--group", "docs")
+    session.install("-e", ".")
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
