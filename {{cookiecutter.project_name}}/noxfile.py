@@ -184,7 +184,6 @@ def typeguard_tests(session: nox.Session) -> None:
     )
 
     session.install("typeguard", "pytest")
-
     session.install("-e", ".")
     session.run("pytest", "--typeguard-packages", package, *session.posargs)
 
