@@ -28,13 +28,13 @@ Changelog = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.proj
 dev = [
   "coverage[toml] >= 6.2",
   "pre-commit >=2.16.0",
-  "pre-commit-hooks >=4.1.0",
+  "pre-commit-hooks >=4.6.0",
   "pytest >=6.2.5",
   "pygments >=2.10.0",
 ]
 lint = [
-  "ruff >=0.0.274",
-  "pydoclint >=0.0.0",
+  "ruff >=0.5.5",
+  "pydoclint >=0.5.0",
 ]
 docs = [
   "furo >=2021.11.12",
