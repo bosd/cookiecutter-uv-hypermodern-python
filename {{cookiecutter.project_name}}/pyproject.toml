@@ -60,7 +60,17 @@ where = ["src"]
 package = true
 
 [project.scripts]
-{{cookiecutter.project_name}} = "{{cookiecutter.package_name}}.__main__:main"
+{{cookiecutter.project_name}} = "{{cookiecutter.package_name}}.__main__:cli"
+
+[build-system]
+# When using mypyc, you must list all dependencies used by the compiled
+# modules here. Otherwise, mypyc will not be able to see the types of the
+# dependencies, and the compilation will fail.
+requires = [
+    "setuptools>=61.0",
+    "mypy>=1.0",
+]
+build-backend = "setuptools.build_meta"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
