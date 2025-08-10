@@ -30,15 +30,43 @@
 
 ## Installation
 
-You can install _{{cookiecutter.friendly_name}}_ via [pip] from [PyPI]:
+You can install _{{cookiecutter.friendly_name}}_ via [pip] from [PyPI]. The package is distributed as a pure Python package, but also with pre-compiled wheels for major platforms, which include performance optimizations.
 
 ```console
 $ pip install {{cookiecutter.project_name}}
 ```
 
+The pre-compiled wheels are built using `mypyc` and will be used automatically if your platform is supported. You can check the files on PyPI to see the list of available wheels.
+
 ## Usage
 
 Please see the [Command-line Reference] for details.
+
+## Development
+
+To contribute to this project, please see the [Contributor Guide].
+
+### Mypyc Compilation
+
+This project can be compiled with `mypyc` to produce a high-performance version of the package. The compilation is optional and is controlled by an environment variable.
+
+To build and install the compiled version locally, you can use the `tests_compiled` nox session:
+
+```console
+$ nox -s tests_compiled
+```
+
+This will set the `{{cookiecutter.package_name | upper}}_COMPILE_MYPYC=1` environment variable, which triggers the compilation logic in `setup.py`. The compiled package will be installed in editable mode in a new virtual environment.
+
+You can also build the compiled wheels for distribution using the `cibuildwheel` workflow, which is configured to run on releases. If you want to build the wheels locally, you can use `cibuildwheel` directly:
+
+```console
+$ pip install cibuildwheel
+$ export {{cookiecutter.package_name | upper}}_COMPILE_MYPYC=1
+$ cibuildwheel --output-dir wheelhouse
+```
+
+This will create the compiled wheels in the `wheelhouse` directory.
 
 ## Contributing
 

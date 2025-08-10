@@ -9,6 +9,16 @@ from textwrap import dedent
 
 import nox
 
+# A helper command to clean up build artifacts
+CLEAN_COMMAND = """
+import glob, os, shutil;
+shutil.rmtree('build', ignore_errors=True);
+shutil.rmtree('dist', ignore_errors=True);
+shutil.rmtree('src/{{cookiecutter.package_name}}.egg-info', ignore_errors=True);
+for f in glob.glob('src/{{cookiecutter.package_name}}/*.so'): os.remove(f);
+for f in glob.glob('src/{{cookiecutter.package_name}}/*.c'): os.remove(f);
+"""
+
 nox.options.default_venv_backend = "uv"
 
 package = "{{cookiecutter.package_name}}"
@@ -108,7 +118,16 @@ def precommit(session: nox.Session) -> None:
         "--hook-stage=manual",
         "--show-diff-on-failure",
     ]
-    session.run("uv", "sync", "--group", "dev", "--group", "lint", external=True)
+
+    session.run(
+        "uv",
+        "sync",
+        "--group",
+        "dev",
+        "--group",
+        "lint",
+        external=True,
+    )
     session.run("pre-commit", *args, external=True)
     if args and args[0] == "install":
         activate_virtualenv_in_precommit_hooks(session)
@@ -130,9 +149,7 @@ def mypy(session: nox.Session) -> None:
     )
 
     session.install("mypy")
-
     session.install("pytest")
-
     session.install("-e", ".")
     session.run("mypy", *args)
     if not session.posargs:
@@ -142,6 +159,7 @@ def mypy(session: nox.Session) -> None:
 @nox.session(python=python_versions)
 def tests(session: nox.Session) -> None:
     """Run the test suite."""
+    session.run("python", "-c", CLEAN_COMMAND)
     session.run(
         "uv",
         "sync",
@@ -152,8 +170,20 @@ def tests(session: nox.Session) -> None:
         external=True,
     )
 
-    session.install("pytest", "coverage")
+    session.install("pytest", "coverage", "pytest-mock")
     session.install("-e", ".")
+    session.run("pytest", *session.posargs)
+
+
+@nox.session(python=python_versions[0])
+def tests_compiled(session: nox.Session) -> None:
+    """Run tests against the compiled C extension code."""
+    session.run("python", "-c", CLEAN_COMMAND)
+    session.install("pytest", "pytest-mock")
+
+    # Install the project WITH the env var to trigger mypyc compilation
+    session.install("-e", ".", env={"{{cookiecutter.package_name | upper}}_COMPILE_MYPYC": "1"})
+
     session.run("pytest", *session.posargs)
 
 
@@ -161,13 +191,20 @@ def tests(session: nox.Session) -> None:
 def coverage(session: nox.Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report"]
-    session.install("pytest", "coverage[toml]", "pytest-cov")
-
+    session.install(
+        "pytest",
+        "coverage[toml]",
+        "pytest-cov",
+        "pytest-mock",
+    )
     session.install("-e", ".")
-
     session.log("Running pytest with coverage...")
+    session.run("pytest", "--cov=src", "--cov-report=xml")
 
-    session.run("pytest", "--cov=src", "--cov-report=xml", *args)
+    if not session.posargs and any(Path().glob(".coverage.*")):
+        session.run("coverage", "combine")
+
+    session.run("coverage", *args)
 
 
 @nox.session(name="typeguard", python=python_versions[0])
@@ -183,7 +220,7 @@ def typeguard_tests(session: nox.Session) -> None:
         external=True,
     )
 
-    session.install("typeguard", "pytest")
+    session.install("typeguard", "pytest", "pytest-mock")
     session.install("-e", ".")
     session.run("pytest", "--typeguard-packages", package, *session.posargs)
 
@@ -217,6 +254,7 @@ def docs_build(session: nox.Session) -> None:
     args = session.posargs or ["docs", "docs/_build"]
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
+
     session.run(
         "uv",
         "sync",
@@ -226,8 +264,14 @@ def docs_build(session: nox.Session) -> None:
         "docs",
         external=True,
     )
-
-    session.install("sphinx", "sphinx-mermaid", "sphinx-click", "myst_parser", "furo")
+    session.install(
+        "sphinx",
+        "sphinx-mermaid",
+        "sphinx-click",
+        "myst_parser",
+        "shibuya",
+        "sphinx-copybutton",
+    )
     session.install("-e", ".")
 
     build_dir = Path("docs", "_build")

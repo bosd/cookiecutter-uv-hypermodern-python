@@ -1,73 +1,102 @@
-name: Release
+name: Build, Sign, and Publish
 
 on:
-  push:
-    branches:
-      - main
-      - master
+  release:
+    types: [published]
 
 jobs:
-  release:
-    name: Release
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            runs-on: ubuntu-latest
+          - os: linux
+            arch: aarch64
+            runs-on: ubuntu-24.04-arm
+          - os: windows
+            arch: amd64
+            runs-on: windows-latest
+          - os: macos
+            arch: x86_64
+            runs-on: macos-13 # Last intel runner
+          - os: macos
+            arch: arm64
+            runs-on: macos-latest # Apple Silicon runner
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.2
+        env:
+          # Trigger mypyc compilation
+          {{cookiecutter.package_name | upper}}_COMPILE_MYPYC: "1"
+          # Set archs for cibuildwheel
+          CIBW_ARCHS: ${{ matrix.arch }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        uses: pypa/build@v0.10.0
         with:
-          fetch-depth: 2
+          sdist: true
+          out-dir: dist
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/upload-artifact@v4
         with:
-          python-version: "3.13"
+          name: cibw-sdist
+          path: dist/*.tar.gz
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+  publish:
+    name: Sign and Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/{{cookiecutter.project_name}}
+    permissions:
+      id-token: write # For PyPI trusted publishing
+      contents: write # For uploading assets to a GitHub release
 
-      - name: Check if there is a parent commit
-        id: check-parent-commit
-        run: |
-          echo "::set-output name=sha::$(git rev-parse --verify --quiet HEAD^)"
-
-      - name: Detect and tag new version
-        id: check-version
-        if: steps.check-parent-commit.outputs.sha
-        uses: salsify/action-detect-and-tag-new-version@v2.0.3
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          version-command: |
-            bash -o pipefail -c "uv version | awk '{ print \$2 }'"
+          path: dist
+          merge-multiple: true
 
-      - name: Bump version for developmental release
-        if: "! steps.check-version.outputs.tag"
-        run: |
-          sed -i -e "s/0.0.0/${GITHUB_REF#refs/*/}/" pyproject.toml
-          # uv bump patch &&
-          # version=$(uv version | awk '{ print $2 }') &&
-          # uv bump $version.dev.$(date +%s)
-
-      - name: Build package
-        run: |
-          uv build
-
-      - name: Publish package on PyPI
-        if: steps.check-version.outputs.tag
-        uses: pypa/gh-action-pypi-publish@v1.12.2
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.1
         with:
-          user: __token__
-          password: {{ "${{ secrets.PYPI_TOKEN }}" }}
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
 
-      - name: Publish package on TestPyPI
-        if: "! steps.check-version.outputs.tag"
-        uses: pypa/gh-action-pypi-publish@v1.12.2
-        with:
-          user: __token__
-          password: {{ "${{ secrets.TEST_PYPI_TOKEN }}" }}
-          repository_url: https://test.pypi.org/legacy/
-
-      - name: Publish the release notes
-        uses: release-drafter/release-drafter@v6.0.0
-        with:
-          publish: {{ "${{ steps.check-version.outputs.tag != '' }}" }}
-          tag: {{ "${{ steps.check-version.outputs.tag }}" }}
+      - name: Upload artifact signatures to GitHub Release
         env:
-          GITHUB_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
+          GITHUB_TOKEN: ${{ github.token }}
+        # Upload all files in dist directory to the release
+        run: >-
+          gh release upload
+          "${{ github.event.release.tag_name }}" ./dist/*
+          --repo "$GITHUB_REPOSITORY"
+
+      - name: Remove sigstore files before publishing to PyPI
+        run: rm -f dist/*.sigstore
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

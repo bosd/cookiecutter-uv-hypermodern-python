@@ -75,10 +75,13 @@ cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2024.11.23
 - Generate API documentation with [autodoc] and [napoleon]
 - Generate command-line reference with [sphinx-click]
 - Manage project labels with [GitHub Labeler]
+- **Performance-Optimized Wheels**: Automatic building of performance-optimized wheels using [cibuildwheel] and [mypyc].
+- **Secure Publishing**: Releases are signed with [Sigstore] for enhanced supply chain security.
 
 The template supports Python 3.9, 3.10, 3.11, 3.12 and 3.13.
 
 [autodoc]: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+[cibuildwheel]: https://cibuildwheel.pypa.io/
 [click]: https://click.palletsprojects.com/
 [codecov]: https://codecov.io/
 [coverage.py]: https://coverage.readthedocs.io/
@@ -98,6 +101,7 @@ The template supports Python 3.9, 3.10, 3.11, 3.12 and 3.13.
 [read the docs]: https://readthedocs.org/
 [release drafter]: https://github.com/release-drafter/release-drafter
 [ruff]: https://github.com/astral-sh/ruff
+[sigstore]: https://www.sigstore.dev/
 [sphinx]: https://www.sphinx-doc.org/
 [sphinx-click]: https://sphinx-click.readthedocs.io/
 [testpypi]: https://test.pypi.org/
