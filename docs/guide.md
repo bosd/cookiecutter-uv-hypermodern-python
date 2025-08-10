@@ -2082,6 +2082,11 @@ The Release workflow uses API tokens to access [PyPI] and [TestPyPI].
 You can generate these tokens from your account settings on these services.
 The tokens need to be stored as secrets in the repository settings on GitHub:
 
+The release workflow is also integrated with [Sigstore] for signing releases.
+The signatures are uploaded as artifacts to the GitHub Release.
+
+[sigstore]: https://www.sigstore.dev/
+
 :::{list-table} Secrets
 :widths: auto
 

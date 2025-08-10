@@ -135,6 +135,7 @@ It is recommended to do this in a separate pull request:
 The Release workflow performs the following automated steps:
 
 - Build and upload the package to PyPI.
+- Sign the release with Sigstore.
 - Apply a version tag to the repository.
 - Publish a GitHub Release.
 

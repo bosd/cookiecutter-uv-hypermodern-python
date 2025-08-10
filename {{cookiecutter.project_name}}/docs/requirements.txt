@@ -1,4 +1,4 @@
-furo==2024.04.27
+shibuya
 sphinx==7.4.7
 sphinx-click==5.2.1
 myst_parser==4.0.0
