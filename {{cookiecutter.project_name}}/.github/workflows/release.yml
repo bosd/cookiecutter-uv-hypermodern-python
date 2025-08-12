@@ -22,7 +22,7 @@ jobs:
         with:
           publish: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
 
   publish-to-testpypi:
     if: github.event_name == 'push'
@@ -43,14 +43,14 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
-          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          password: {{ "${{ secrets.TEST_PYPI_TOKEN }}" }}
           repository_url: https://test.pypi.org/legacy/
           skip-existing: true
 
   build_wheels:
     if: github.event_name == 'release' && github.event.action == 'published'
-    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
-    runs-on: ${{ matrix.runs-on }}
+    name: Build wheels on {{ "${{ matrix.os }}" }} {{ "(${{ matrix.arch }})" }}
+    runs-on: {{ "${{ matrix.runs-on }}" }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,10 +76,10 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.2
         env:
           {{cookiecutter.package_name | upper}}_COMPILE_MYPYC: "1"
-          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_ARCHS: {{ "${{ matrix.arch }}" }}
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
+          name: cibw-wheels-{{"${{ matrix.os }}"}}-{{"${{ matrix.arch }}"}}
           path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -122,10 +122,10 @@ jobs:
             ./dist/*.whl
       - name: Upload artifact signatures to GitHub Release
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
         run: >-
           gh release upload
-          "${{ github.event.release.tag_name }}" ./dist/*
+          {{ "${{ github.event.release.tag_name }}" }} ./dist/*
           --repo "$GITHUB_REPOSITORY"
       - name: Remove sigstore files before publishing to PyPI
         run: rm -f dist/*.sigstore
