@@ -188,23 +188,13 @@ jobs:
       - name: Publish package on PyPI
         if: steps.tag_release.outputs.NEW_TAG_CREATED == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1 # Using the latest recommended stable release
-        with:
-          # Recommended: Use PyPI Trusted Publishing.
-          # Configure your PyPI project to trust this GitHub repo.
-          # If set up, 'username' and 'password' are not needed here.
-          # Otherwise, use your PyPI API token:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Publish package on TestPyPI
         # This step runs if NO new tag was created (i.e., a regular push to main/master).
         if: steps.tag_release.outputs.NEW_TAG_CREATED == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Use your TestPyPI API token:
-          user: __token__
-          password: ${{ secrets.TEST_PYPI_TOKEN }} # Ensure this secret is configured
-          repository-url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy
 
       # Note: The `Publish the release notes` step from your example is handled by
       # your separate `release-drafter.yml` workflow, which is good.
