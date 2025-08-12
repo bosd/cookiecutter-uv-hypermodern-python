@@ -14,7 +14,7 @@ jobs:
   instance:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      contents: write # This permission is needed to push changes to the repository.
     steps:
       - name: Check out Template Repository
         uses: actions/checkout@v4
@@ -38,37 +38,53 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
-          uv-version: "0.2.14" # It's good practice to pin a version
+          uv-version: "0.2.14" # Pinning a version is good practice.
 
-      - name: Create cutty.json if it doesn't exist
-        working-directory: ${{ env.PROJECT }}
+      - name: Update project from template
         run: |
-          if [ ! -f cutty.json ]; then
-            echo '{"template": {"location": "https://github.com/bosd/cookiecutter-uv-hypermodern-python.git", "directory": "cookiecutter-uv-hypermodern-python", "revision": "${{ github.sha }}"}}' > cutty.json
-          fi
-
-      - name: Install dependencies and import changes
-        working-directory: ${{ env.TEMPLATE }}
-        run: |
+          # Use a single run block to manage environment state.
+          # Create and activate a virtual environment for the template directory.
           uv venv
           source .venv/bin/activate
 
-          uv pip install --constraint=.github/workflows/constraints.txt cutty
-          cutty --version
-          cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
+          # Install cutty from the constraints file.
+          uv pip install --constraint=${{ env.TEMPLATE }}/.github/workflows/constraints.txt cutty
+
+          # Ensure cutty.json exists with all necessary info in the project directory.
+          project_path="${{ env.PROJECT }}"
+          template_url="https://github.com/bosd/${{ env.TEMPLATE }}.git"
+          template_dir="${{ env.TEMPLATE }}"
+
+          # Create the file with the correct JSON structure.
+          cat > "$project_path/cutty.json" << EOF
+          {
+            "template": {
+              "location": "$template_url",
+              "directory": "$template_dir",
+              "revision": "${{ github.sha }}"
+            },
+            "bindings": {}
+          }
+          EOF
+
+          # Now run the cutty import command from the project directory.
+          # This command will read the cutty.json we just created.
+          # The command should be run from the project's root, not the template's.
+          cd "$project_path"
+          cutty import --non-interactive
 
       - name: Push updates to project
         working-directory: ${{ env.PROJECT }}
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-
-          if git diff --exit-code; then
-            echo "No changes to commit."
-          else
+          if ! git diff --exit-code; then
             git add .
             git commit -m "chore: Update from template"
             git push origin main
+          else
+            echo "No changes to commit."
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.X_GITHUB_TOKEN }}
+          # Use the default GitHub token for authentication
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
