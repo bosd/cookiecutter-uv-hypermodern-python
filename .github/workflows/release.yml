@@ -167,17 +167,20 @@ jobs:
           echo "--- Checking .git/refs/tags/ directory content: ---"
           ls -la .git/refs/tags/ || echo "No tags directory found in .git/refs/"
 
-      - name: Bump version for developmental release
+      - name: Bump version for developmental release and save to file
+        # This step runs if NO new tag was created (i.e., a regular push to main/master).
         if: steps.tag_release.outputs.NEW_TAG_CREATED == 'false'
+        id: bump_version
         run: |
+          # Use the Python from the virtual environment to read and write the TOML file.
           PYTHON_EXE="${{ env.PYTHON_BIN_FOR_VENV }}"
-          CURRENT_VERSION=$("${PYTHON_EXE}" -c "import toml; print(toml.load('${{ github.workspace }}/pyproject.toml')['project']['version'])")
-          DEVELOPMENT_VERSION="${CURRENT_VERSION}.dev.$(date +%s)"
-          echo "Bumping version to ${DEVELOPMENT_VERSION} for TestPyPI release."
-          # Note: This step currently only echoes the bumped version.
-          # If you want to actually *write* this back to pyproject.toml and commit/push it,
-          # you would need additional logic here (e.g., using `toml` library in Python to modify the file).
-          # For now, it's just a message preceding the TestPyPI publish.
+          PYPROJECT_TOML_PATH="${{ github.workspace }}/pyproject.toml"
+
+          # Install tomlkit, a library designed for modifying TOML files without losing formatting.
+          uv pip install tomlkit
+
+          # Execute the Python script to bump the version
+          PYPROJECT_TOML_PATH="${PYPROJECT_TOML_PATH}" GITHUB_OUTPUT="${GITHUB_OUTPUT}" "${PYTHON_EXE}" "${{ github.workspace }}/tools/bump_version.py"
 
       - name: Build package with uv
         run: uv build
