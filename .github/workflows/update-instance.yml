@@ -44,7 +44,7 @@ jobs:
         working-directory: ${{ env.PROJECT }}
         run: |
           if [ ! -f cutty.json ]; then
-            echo '{"template": {"location": "https://github.com/bosd/cookiecutter-uv-hypermodern-python.git"}}' > cutty.json
+            echo '{"template": {"location": "https://github.com/bosd/cookiecutter-uv-hypermodern-python.git", "directory": "cookiecutter-uv-hypermodern-python"}}' > cutty.json
           fi
 
       - name: Install dependencies and import changes
