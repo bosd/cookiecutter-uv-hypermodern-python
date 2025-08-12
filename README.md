@@ -59,7 +59,7 @@ cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout=2024.11.23
 - Test automation with [Nox]
 - Linting with [pre-commit] and [ruff]
 - Continuous integration with [GitHub Actions]
-- Documentation with [Sphinx], [MyST], and [Read the Docs] using the [furo] theme
+- Documentation with [Sphinx], [MyST], and [Read the Docs] using the [shibuya] theme
 - Automated uploads to [PyPI] and [TestPyPI]
 - Automated release notes with [Release Drafter]
 - Automated dependency updates with [Dependabot]
@@ -86,7 +86,7 @@ The template supports Python 3.9, 3.10, 3.11, 3.12 and 3.13.
 [codecov]: https://codecov.io/
 [coverage.py]: https://coverage.readthedocs.io/
 [dependabot]: https://github.com/dependabot/dependabot-core
-[furo]: https://pradyunsg.me/furo/
+[shibuya]: https://shibuya.lepture.com/
 [github actions]: https://github.com/features/actions
 [github labeler]: https://github.com/marketplace/actions/github-labeler
 [mypy]: https://mypy-lang.org/

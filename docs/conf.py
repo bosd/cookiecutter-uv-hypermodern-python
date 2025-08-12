@@ -8,7 +8,7 @@ copyright = f"{datetime.now().year}, {author}"
 extensions = ["sphinx.ext.intersphinx", "myst_parser"]
 intersphinx_mapping = {"mypy": ("https://mypy.readthedocs.io/en/stable/", None)}
 language = "en"
-html_theme = "furo"
+html_theme = "shibuya"
 html_logo = "_static/logo.png"
 linkcheck_ignore = [
     "codeofconduct.html",
