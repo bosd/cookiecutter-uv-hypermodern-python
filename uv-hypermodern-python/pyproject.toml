@@ -1,55 +1,43 @@
 [project]
-name = "cookiecutter-uv-hypermodern-python"
-version = "2024.8.12"
-description = "A Cookiecutter template for a hypermodern Python project using uv."
+name = "uv-hypermodern-python"
+version = "0.0.0"
+description = "Uv Hypermodern Python"
 readme = "README.md"
 requires-python = ">=3.9"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
-  { name = "bosd", email = "c5e2fd43-d292-4c90-9d1f-74ff3436329a@anonaddy.me" },
+  {name = "bosd", email = "mail@claudiojolowicz.com"},
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Build Tools",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Code Generators",
+  "Development Status :: 1 - Planning",
 ]
 
 dependencies = [
 "click >=8.0.1",
+"nox",
 ]
 
 
 [project.urls]
-Homepage = "https://github.com/bosd/cookiecutter-uv-hypermodern-python"
-Repository = "https://github.com/bosd/cookiecutter-uv-hypermodern-python"
-Documentation = "https://cookiecutter-uv-hypermodern-python.readthedocs.io/"
-Changelog = "https://github.com/bosd/cookiecutter-uv-hypermodern-python/releases"
+Homepage = "https://github.com/bosd/uv-hypermodern-python"
+Repository = "https://github.com/bosd/uv-hypermodern-python"
+Documentation = "https://uv-hypermodern-python.readthedocs.io"
+Changelog = "https://github.com/bosd/uv-hypermodern-python/releases"
 
 [dependency-groups]
 dev = [
-  "uv>=0.1.0",
-  "toml",
-  "hatchling",
   "coverage[toml] >= 6.2",
   "pre-commit >=2.16.0",
-  "pre-commit-hooks >=4.1.0",
+  "pre-commit-hooks >=4.6.0",
   "pytest >=6.2.5",
   "pygments >=2.10.0",
 ]
 lint = [
-  "ruff >=0.0.274",
-  "pydoclint >=0.0.0",
+  "ruff >=0.5.5",
+  "pydoclint >=0.5.0",
 ]
 docs = [
-  "shibuya >=2025.1.29",
+  "furo >=2021.11.12",
   "myst-parser == 3.0.1",
   "sphinx >= 4.3.2",
   "sphinx-autobuild >=2021.3.14",
@@ -65,33 +53,24 @@ xdoctest = [
   "xdoctest[colors] >=0.15.10"
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.sdist]
-exclude = [
-    "/.git",
-    "/.github",
-    "/.venv",
-    "/docs",
-    "/tools",
-    "/noxfile.py",
-    "/.pre-commit-config.yaml",
-    "/.readthedocs.yml",
-]
-
-[tool.hatch.build.targets.wheel]
-packages = ["."]
-
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 
 [tool.uv]
 package = true
 
 [project.scripts]
-cookiecutter-uv-hypermodern-python-instance = "cookiecutter_uv_hypermodern_python.__main__:main"
+uv-hypermodern-python = "uv_hypermodern_python.__main__:cli"
+
+[build-system]
+# When using mypyc, you must list all dependencies used by the compiled
+# modules here. Otherwise, mypyc will not be able to see the types of the
+# dependencies, and the compilation will fail.
+requires = [
+    "setuptools>=61.0",
+    "mypy>=1.0",
+]
+build-backend = "setuptools.build_meta"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
@@ -99,7 +78,7 @@ tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["cookiecutter_uv_hypermodern_python", "tests"]
+source = ["uv_hypermodern_python", "tests"]
 
 [tool.coverage.report]
 show_missing = true

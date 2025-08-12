@@ -1,0 +1,16 @@
+{
+  "_checkout": null,
+  "_output_dir": "/app",
+  "_repo_dir": ".",
+  "_template": ".",
+  "author": "bosd",
+  "copyright_year": "2025",
+  "development_status": "Development Status :: 1 - Planning",
+  "email": "mail@claudiojolowicz.com",
+  "friendly_name": "Uv Hypermodern Python",
+  "github_user": "bosd",
+  "license": "MIT",
+  "package_name": "uv_hypermodern_python",
+  "project_name": "uv-hypermodern-python",
+  "version": "0.0.0"
+}
