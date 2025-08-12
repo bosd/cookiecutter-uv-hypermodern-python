@@ -44,7 +44,7 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
-          
+
       - name: Install dependencies
         working-directory: ${{ env.TEMPLATE }}
         run: |
