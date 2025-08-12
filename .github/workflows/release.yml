@@ -194,7 +194,8 @@ jobs:
         if: steps.tag_release.outputs.NEW_TAG_CREATED == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy
+          repository-url: https://test.pypi.org/legacy/
+          extra_args: --verbose
 
       # Note: The `Publish the release notes` step from your example is handled by
       # your separate `release-drafter.yml` workflow, which is good.
