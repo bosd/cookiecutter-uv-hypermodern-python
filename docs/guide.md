@@ -2374,7 +2374,7 @@ You can also read the articles on [this blog][hypermodern python blog].
 [git hook]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 [git]: https://www.git-scm.com
 [github actions artifacts]: https://help.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts
-[github actions runners]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+[github actions runners]: https://docs.github.com/en/actions/concepts/runners/github-hosted-runners#cloud-hosts-used-by-github-hosted-runners
 [github actions syntax]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
 [github actions]: https://github.com/features/actions
 [github labeler]: https://github.com/marketplace/actions/github-labeler
@@ -2462,7 +2462,7 @@ You can also read the articles on [this blog][hypermodern python blog].
 [unix-style line endings]: https://en.wikipedia.org/wiki/Newline
 [uv]: https://docs.astral.sh/uv/
 [uv bump]: https://docs.astral.sh/uv/reference/cli/
-[versions and constraints]: https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-specifiers-pep-508
+[versions and constraints]: https://docs.astral.sh/uv/concepts/projects/dependencies/#project-dependencies
 [virtual environment]: https://docs.python.org/3/tutorial/venv.html
 [virtualenv]: https://virtualenv.pypa.io/
 [wheel]: https://www.python.org/dev/peps/pep-0427/
