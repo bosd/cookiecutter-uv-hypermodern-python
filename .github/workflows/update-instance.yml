@@ -21,6 +21,7 @@ jobs:
         with:
           repository: bosd/${{ env.TEMPLATE }}
           path: ${{ env.TEMPLATE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check out Project Repository
         uses: actions/checkout@v4
