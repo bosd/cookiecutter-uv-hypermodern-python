@@ -40,6 +40,9 @@ jobs:
         with:
           uv-version: "0.2.14" # It's good practice to pin a version
 
+      - name: Create uv virtual environment for build
+        run: uv venv
+
       - name: Install dependencies
         working-directory: ${{ env.TEMPLATE }}
         run: |
