@@ -44,7 +44,7 @@ jobs:
         working-directory: ${{ env.PROJECT }}
         run: |
           if [ ! -f cutty.json ]; then
-            echo '{"template": {"location": "https://github.com/bosd/cookiecutter-uv-hypermodern-python.git", "directory": "cookiecutter-uv-hypermodern-python"}}' > cutty.json
+            echo '{"template": {"location": "https://github.com/bosd/cookiecutter-uv-hypermodern-python.git", "directory": "cookiecutter-uv-hypermodern-python", "revision": "${{ github.sha }}"}}' > cutty.json
           fi
 
       - name: Install dependencies and import changes
@@ -52,7 +52,7 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
-          
+
           uv pip install --constraint=.github/workflows/constraints.txt cutty
           cutty --version
           cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
