@@ -1,211 +1,133 @@
-name: Release Template
+name: Release
 
 on:
-  # This workflow triggers on push to main/master.
-  # It then detects if a new tag (release) should be created.
-  # This is the "push-based" release model.
-  # If you prefer to trigger *only* on a manual GitHub Release publish,
-  # change this to:
-  # release:
-  #   types: [published]
-  # And remove the 'Detect and tag new version' and 'Bump version' steps.
-  # However, for automatic tagging and conditional publishing like the example,
-  # 'push' is needed here.
   push:
     branches:
       - main
       - master
+  release:
+    types: [published]
 
 jobs:
-  release:
-    name: Release
+  release-drafter:
+    if: github.event_name == 'push'
+    name: Draft Release Notes
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write # Required for PyPI Trusted Publishing
+      pull-requests: write
+    steps:
+      - name: Draft Release
+        uses: release-drafter/release-drafter@v6.0.0
+        with:
+          publish: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  publish-to-testpypi:
+    if: github.event_name == 'push'
+    name: Build and Publish to TestPyPI
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Create uv virtual environment for build
-        run: uv venv
-
-      - name: Install build dependencies and toml for version detection
-        run: |
-          uv pip install toml # Install the 'toml' library
-          uv pip install build wheel # Ensure build tools are available via uv
-
-      - name: Set virtual environment python path as job env variable
-        run: |
-          VENV_PYTHON_PATH="${{ github.workspace }}/.venv/bin/python"
-
-          echo "DEBUG: Setting PYTHON_BIN_FOR_VENV to: ${VENV_PYTHON_PATH}"
-
-          if [ -z "$VENV_PYTHON_PATH" ]; then
-            echo "ERROR: VENV_PYTHON_PATH is empty. Virtual environment Python not found!"
-            exit 1
-          fi
-
-          if [ ! -f "$VENV_PYTHON_PATH" ]; then
-            echo "ERROR: Python executable does not exist at computed path: ${VENV_PYTHON_PATH}"
-            echo "Please check the .venv/bin/ directory structure."
-            ls -la ${{ github.workspace }}/.venv/bin/
-            exit 1
-          fi
-
-          echo "PYTHON_BIN_FOR_VENV=${VENV_PYTHON_PATH}" >> "$GITHUB_ENV"
-          echo "DEBUG: Successfully set job environment variable PYTHON_BIN_FOR_VENV to: ${VENV_PYTHON_PATH}"
-
-      - name: Debug Python Path Output (Verify Job Env Variable)
-        run: |
-          echo "Debug: PYTHON_BIN_FOR_VENV as seen in this step is '${{ env.PYTHON_BIN_FOR_VENV }}'"
-          if [ -z "${{ env.PYTHON_BIN_FOR_VENV }}" ]; then
-            echo "CRITICAL ERROR: PYTHON_BIN_FOR_VENV is STILL empty when accessed from a subsequent step. This is a GitHub Actions env var bug."
-            exit 1
-          fi
-          if [ ! -f "${{ env.PYTHON_BIN_FOR_VENV }}" ]; then
-            echo "CRITICAL ERROR: Python executable not found at propagated env var path: '${{ env.PYTHON_BIN_FOR_VENV }}'"
-            exit 1
-          fi
-
-      - name: Get project version from pyproject.toml
-        id: get_version
-        run: |
-          PYTHON_EXE="${{ env.PYTHON_BIN_FOR_VENV }}"
-          PYPROJECT_TOML_FULL_PATH="${{ github.workspace }}/pyproject.toml"
-
-          RAW_VERSION_OUTPUT=$("${PYTHON_EXE}" -c "import toml; print(toml.load('${PYPROJECT_TOML_FULL_PATH}')['project']['version'])")
-          VERSION=$(echo "${RAW_VERSION_OUTPUT}" | tr -d '\n\r ')
-
-          if [ -z "$VERSION" ]; then
-            echo "ERROR: Version extracted from pyproject.toml is EMPTY!"
-            exit 1
-          fi
-
-          echo "PROJECT_VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Detected project version from pyproject.toml: ${VERSION}"
-
-      - name: Detect New Version and Create Tag
-        id: tag_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for git push --tags
-        run: |
-          # We no longer need PYTHON_EXE for this comparison
-          CURRENT_VERSION="${{ steps.get_version.outputs.PROJECT_VERSION }}"
-          NEW_TAG_CREATED="false"
-
-          echo "Current project version from pyproject.toml: ${CURRENT_VERSION}"
-
-          LATEST_GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-          echo "Latest Git tag found by 'git describe': '${LATEST_GIT_TAG}'"
-
-          if [ -z "$LATEST_GIT_TAG" ]; then
-            echo "No existing Git tags found. Will create the first tag: ${CURRENT_VERSION}"
-            CREATE_TAG="true"
-          else
-            # Perform version comparison using pure Bash string comparison.
-            # This works correctly for YYYY.MM.DD format because it's lexicographically ordered.
-            if [[ "$CURRENT_VERSION" > "$LATEST_GIT_TAG" ]]; then
-              echo "New version detected (${CURRENT_VERSION} > ${LATEST_GIT_TAG}). Will create tag."
-              CREATE_TAG="true"
-            elif [[ "$CURRENT_VERSION" == "$LATEST_GIT_TAG" ]]; then
-              echo "Version is unchanged (${CURRENT_VERSION} == ${LATEST_GIT_TAG}). No new tag needed."
-              CREATE_TAG="false"
-            else # Current version is less than latest tag (this scenario indicates an issue if it's a release push)
-              echo "Current version (${CURRENT_VERSION}) is older than latest tag (${LATEST_GIT_TAG}). This should not happen for a release push."
-              CREATE_TAG="false"
-              # Optionally, you could uncomment the line below to make the workflow fail in this unexpected scenario.
-              # exit 1
-            fi
-          fi
-
-          if [ "$CREATE_TAG" = "true" ]; then
-            echo "Creating Git tag: ${CURRENT_VERSION}"
-            git tag "${CURRENT_VERSION}"
-
-            echo "Pushing new tag to remote..."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git push origin "${CURRENT_VERSION}"
-
-            NEW_TAG_CREATED="true"
-            echo "Successfully created and pushed tag: ${CURRENT_VERSION}"
-          else
-            echo "No new tag created. Will publish to TestPyPI."
-          fi
-
-          echo "NEW_TAG_CREATED=${NEW_TAG_CREATED}" >> "$GITHUB_OUTPUT"
-          echo "Tagging process complete."
-
-      - name: Check if there is a parent commit
-        id: check-parent-commit
-        run: |
-          echo "sha=$(git rev-parse --verify --quiet HEAD^)" >> "$GITHUB_OUTPUT"
-
-      - name: Debug Git Tags and Describe
-        run: |
-          echo "--- Listing all Git tags known to this runner (sorted by version): ---"
-          git tag -l --sort=-v:refname
-
-          echo ""
-          echo "--- Output of 'git describe --tags --abbrev=0' (what salsify likely uses for previous version detection): ---"
-          # 'git describe' fails if no tags are found, so we handle that gracefully.
-          git describe --tags --abbrev=0 || echo "No suitable tags found by 'git describe --tags --abbrev=0'"
-
-          echo ""
-          echo "--- Checking .git/refs/tags/ directory content: ---"
-          ls -la .git/refs/tags/ || echo "No tags directory found in .git/refs/"
-
-      - name: Bump version for developmental release and save to file
-        # This step runs if NO new tag was created (i.e., a regular push to main/master).
-        if: steps.tag_release.outputs.NEW_TAG_CREATED == 'false'
-        id: bump_version
-        run: |
-          # Use the Python from the virtual environment to read and write the TOML file.
-          PYTHON_EXE="${{ env.PYTHON_BIN_FOR_VENV }}"
-          PYPROJECT_TOML_PATH="${{ github.workspace }}/pyproject.toml"
-
-          # Install tomlkit, a library designed for modifying TOML files without losing formatting.
-          uv pip install tomlkit
-
-          # Execute the Python script to bump the version
-          PYPROJECT_TOML_PATH="${PYPROJECT_TOML_PATH}" GITHUB_OUTPUT="${GITHUB_OUTPUT}" "${PYTHON_EXE}" "${{ github.workspace }}/tools/bump_version.py"
-
-      - name: Build package with uv
-        run: uv build
-
-      - name: Publish package on PyPI
-        if: steps.tag_release.outputs.NEW_TAG_CREATED == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1 # Using the latest recommended stable release
-        with:
-          # Recommended: Use PyPI Trusted Publishing.
-          # Configure your PyPI project to trust this GitHub repo.
-          # If set up, 'username' and 'password' are not needed here.
-          # Otherwise, use your PyPI API token:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: Publish package on TestPyPI
-        # This step runs if NO new tag was created (i.e., a regular push to main/master).
-        if: steps.tag_release.outputs.NEW_TAG_CREATED == 'false'
+        uses: astral-sh/setup-uv@v4
+      - name: Build package
+        run: uv build --sdist --wheel
+      - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Use your TestPyPI API token:
           user: __token__
-          password: ${{ secrets.TEST_PYPI_TOKEN }} # Ensure this secret is configured
-          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          skip-existing: true
 
-      # Note: The `Publish the release notes` step from your example is handled by
-      # your separate `release-drafter.yml` workflow, which is good.
-      # That workflow handles the GitHub Release creation, this one handles PyPI publishing.
+  build_wheels:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            runs-on: ubuntu-latest
+          - os: linux
+            arch: aarch64
+            runs-on: ubuntu-24.04-arm
+          - os: windows
+            arch: amd64
+            runs-on: windows-latest
+          - os: macos
+            arch: x86_64
+            runs-on: macos-13
+          - os: macos
+            arch: arm64
+            runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.2
+        env:
+          UV_HYPERMODERN_PYTHON_COMPILE_MYPYC: "1"
+          CIBW_ARCHS: ${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Build sdist
+        run: uv build --sdist --out-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  publish_release:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Sign and Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/uv-hypermodern-python
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.1
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+      - name: Upload artifact signatures to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release upload
+          ${{ github.event.release.tag_name }} ./dist/*
+          --repo "$GITHUB_REPOSITORY"
+      - name: Remove sigstore files before publishing to PyPI
+        run: rm -f dist/*.sigstore
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
