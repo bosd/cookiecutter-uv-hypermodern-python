@@ -49,13 +49,13 @@ jobs:
         working-directory: ${{ env.TEMPLATE }}
         run: |
           uv pip install --constraint=.github/workflows/constraints.txt cutty
-          cutty --version
+          uv run cutty --version
 
       - name: Import changes into project
         working-directory: ${{ env.TEMPLATE }}
         run: |
           source .venv/bin/activate # Re-activate the venv for this step
-          cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
+          uv run cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
         env:
           GIT_AUTHOR_NAME: "GitHub Action"
           GIT_AUTHOR_EMAIL: "action@github.com"
