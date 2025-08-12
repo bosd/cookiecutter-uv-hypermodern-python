@@ -41,18 +41,21 @@ jobs:
           uv-version: "0.2.14" # It's good practice to pin a version
 
       - name: Create uv virtual environment for build
-        run: uv venv
-
+        run: |
+          uv venv
+          source .venv/bin/activate
+          
       - name: Install dependencies
         working-directory: ${{ env.TEMPLATE }}
         run: |
           uv pip install --constraint=.github/workflows/constraints.txt cutty
-          uv run cutty --version
+          cutty --version
 
       - name: Import changes into project
         working-directory: ${{ env.TEMPLATE }}
         run: |
-          uv run cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
+          source .venv/bin/activate # Re-activate the venv for this step
+          cutty import --non-interactive --cwd=../${{ env.PROJECT }} --revision=${{ github.sha }}
         env:
           GIT_AUTHOR_NAME: "GitHub Action"
           GIT_AUTHOR_EMAIL: "action@github.com"
