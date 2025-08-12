@@ -40,6 +40,13 @@ jobs:
         with:
           uv-version: "0.2.14" # It's good practice to pin a version
 
+      - name: Create cutty.json if it doesn't exist
+        working-directory: ${{ env.PROJECT }}
+        run: |
+          if [ ! -f cutty.json ]; then
+            echo "{}" > cutty.json
+          fi
+
       - name: Install dependencies and import changes
         working-directory: ${{ env.TEMPLATE }}
         run: |
