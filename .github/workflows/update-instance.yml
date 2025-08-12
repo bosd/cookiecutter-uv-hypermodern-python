@@ -55,7 +55,7 @@ jobs:
           {
             "template": {
               "location": "$template_url",
-              "directory": "$template_dir",
+              "directory": "",
               "revision": "${{ github.sha }}"
             },
             "bindings": {}
