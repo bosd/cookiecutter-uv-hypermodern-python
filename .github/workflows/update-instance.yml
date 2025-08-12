@@ -42,20 +42,15 @@ jobs:
 
       - name: Update project from template
         run: |
-          # Use a single run block to manage environment state.
-          # Create and activate a virtual environment for the template directory.
           uv venv
           source .venv/bin/activate
 
-          # Install cutty from the constraints file.
           uv pip install --constraint=${{ env.TEMPLATE }}/.github/workflows/constraints.txt cutty
 
-          # Ensure cutty.json exists with all necessary info in the project directory.
           project_path="${{ env.PROJECT }}"
           template_url="https://github.com/bosd/${{ env.TEMPLATE }}.git"
           template_dir="${{ env.TEMPLATE }}"
 
-          # Create the file with the correct JSON structure.
           cat > "$project_path/cutty.json" << EOF
           {
             "template": {
@@ -67,9 +62,6 @@ jobs:
           }
           EOF
 
-          # Now run the cutty import command from the project directory.
-          # This command will read the cutty.json we just created.
-          # The command should be run from the project's root, not the template's.
           cd "$project_path"
           cutty import --non-interactive
 
