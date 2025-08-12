@@ -17,14 +17,14 @@ jobs:
       contents: write # This permission is needed to push changes to the repository.
     steps:
       - name: Check out Template Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: bosd/${{ env.TEMPLATE }}
           path: ${{ env.TEMPLATE }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check out Project Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: bosd/${{ env.PROJECT }}
           path: ${{ env.PROJECT }}
