@@ -28,7 +28,7 @@ jobs:
         with:
           repository: bosd/${{ env.PROJECT }}
           path: ${{ env.PROJECT }}
-          token: ${{ secrets.X_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
