@@ -16,7 +16,7 @@ jobs:
     name: Python ${{ matrix.python-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         # Explicitly set fetch-depth to 0 to ensure a full clone.
         # This is usually not needed but can rule out certain issues.
         with:
