@@ -31,6 +31,7 @@ nox.options.sessions = (
     "typeguard",
     "xdoctest",
     "docs-build",
+    "docs-linkcheck",
 )
 
 
@@ -252,6 +253,39 @@ def xdoctest(session: nox.Session) -> None:
 def docs_build(session: nox.Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
+    if not session.posargs and "FORCE_COLOR" in os.environ:
+        args.insert(0, "--color")
+
+    session.run(
+        "uv",
+        "sync",
+        "--group",
+        "dev",
+        "--group",
+        "docs",
+        external=True,
+    )
+    session.install(
+        "sphinx",
+        "sphinx-mermaid",
+        "sphinx-click",
+        "myst_parser",
+        "shibuya",
+        "sphinx-copybutton",
+    )
+    session.install("-e", ".")
+
+    build_dir = Path("docs", "_build")
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    session.run("sphinx-build", *args)
+
+
+@nox.session(name="docs-linkcheck", python=python_versions[1])
+def docs_linkcheck(session: nox.Session) -> None:
+    """Check links in the documentation."""
+    args = session.posargs or ["-b", "linkcheck", "--keep-going", "docs", "docs/_build"]
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
