@@ -21,7 +21,7 @@ jobs:
         # This is usually not needed but can rule out certain issues.
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
