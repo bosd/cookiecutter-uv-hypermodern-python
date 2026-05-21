@@ -17,6 +17,6 @@ def greet(name: str) -> str:
         name: The name to greet.
 
     Returns:
-        The greeting message.
+        str: The greeting message.
     """
     return f"Hello, {name}!"
