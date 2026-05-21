@@ -43,7 +43,22 @@ repos:
         entry: ruff format
         language: python
         types_or: [python, pyi]
+      - id: ty
+        name: ty
+        entry: ty check src tests
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: zizmor
+        name: zizmor
+        entry: zizmor --offline --min-severity=low
+        language: system
+        files: ^\.github/workflows/.*\.(yml|yaml)$
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.8.3
     hooks:
       - id: prettier
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
