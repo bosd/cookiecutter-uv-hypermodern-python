@@ -303,20 +303,10 @@ def docs_linkcheck(session: nox.Session) -> None:
         "uv",
         "sync",
         "--group",
-        "dev",
-        "--group",
         "docs",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.install(
-        "sphinx",
-        "sphinx-mermaid",
-        "sphinx-click",
-        "myst_parser",
-        "shibuya",
-        "sphinx-copybutton",
-    )
-    session.install("-e", ".")
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
