@@ -291,6 +291,29 @@ def docs_build(session: nox.Session) -> None:
     session.run("sphinx-build", *args)
 
 
+@nox.session(name="docs-linkcheck", python=python_versions[1])
+def docs_linkcheck(session: nox.Session) -> None:
+    """Check links in the documentation."""
+    args = session.posargs or ["-b", "linkcheck", "--keep-going", "docs", "docs/_build"]
+    if not session.posargs and "FORCE_COLOR" in os.environ:
+        args.insert(0, "--color")
+
+    session.run(
+        "uv",
+        "sync",
+        "--group",
+        "docs",
+        external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+
+    build_dir = Path("docs", "_build")
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    session.run("sphinx-build", *args)
+
+
 @nox.session(python=python_versions[0])
 def docs(session: nox.Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
