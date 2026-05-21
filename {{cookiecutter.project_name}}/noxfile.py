@@ -22,7 +22,7 @@ for f in glob.glob('src/{{cookiecutter.package_name}}/*.c'): os.remove(f);
 nox.options.default_venv_backend = "uv"
 
 package = "{{cookiecutter.package_name}}"
-python_versions = ["3.12", "3.13", "3.11", "3.10", "3.9"]
+python_versions = ["3.12", "3.13", "3.11", "3.10", "3.14"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -259,20 +259,10 @@ def docs_build(session: nox.Session) -> None:
         "uv",
         "sync",
         "--group",
-        "dev",
-        "--group",
         "docs",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.install(
-        "sphinx",
-        "sphinx-mermaid",
-        "sphinx-click",
-        "myst_parser",
-        "shibuya",
-        "sphinx-copybutton",
-    )
-    session.install("-e", ".")
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
