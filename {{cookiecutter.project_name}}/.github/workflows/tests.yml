@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     name: ${{"{{"}} matrix.session {{"}}"}} ${{"{{"}} matrix.python {{"}}"}} / ${{"{{"}} matrix.os {{"}}"}}
@@ -15,19 +18,20 @@ jobs:
       matrix:
         include:
           - { python: "3.12", os: "ubuntu-latest", session: "pre-commit" }
+          - { python: "3.14", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.13", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.12", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.11", os: "ubuntu-latest", session: "mypy" }
           - { python: "3.10", os: "ubuntu-latest", session: "mypy" }
-          - { python: "3.9", os: "ubuntu-latest", session: "mypy" }
+          - { python: "3.14", os: "ubuntu-latest", session: "tests" }
           - { python: "3.13", os: "ubuntu-latest", session: "tests" }
           - { python: "3.12", os: "ubuntu-latest", session: "tests" }
           - { python: "3.11", os: "ubuntu-latest", session: "tests" }
           - { python: "3.10", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.9", os: "ubuntu-latest", session: "tests" }
           - { python: "3.12", os: "windows-latest", session: "tests" }
           - { python: "3.12", os: "macos-latest", session: "tests" }
           - { python: "3.12", os: "ubuntu-latest", session: "typeguard" }
+          - { python: "3.12", os: "ubuntu-latest", session: "ty" }
           - { python: "3.13", os: "windows-latest", session: "tests" }
           - { python: "3.13", os: "macos-latest", session: "tests" }
           - { python: "3.13", os: "ubuntu-latest", session: "xdoctest" }
@@ -40,15 +44,17 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{"{{"}} matrix.python {{"}}"}}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: ${{"{{"}} matrix.python {{"}}"}}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
       - name: Create uv environment
         run: uv venv
@@ -72,7 +78,7 @@ jobs:
           print(f"result={result}")
 
       - name: Restore pre-commit cache
-        uses: actions/cache@v4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         if: matrix.session == 'pre-commit'
         with:
           path: ~/.cache/pre-commit
@@ -86,7 +92,7 @@ jobs:
 
       - name: Upload coverage data
         if: always() && matrix.session == 'tests'
-        uses: "actions/upload-artifact@v4"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-data-${{"{{"}} matrix.session {{"}}"}}-${{"{{"}} matrix.python {{"}}"}}-${{"{{"}} matrix.os {{"}}"}}
           path: ".coverage.*"
@@ -95,7 +101,7 @@ jobs:
 
       - name: Upload documentation
         if: matrix.session == 'docs-build'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: docs
           path: docs/_build
@@ -105,15 +111,17 @@ jobs:
     needs: tests
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: "3.13"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
       - name: Create uv virtual environment
         run: uv venv
@@ -128,7 +136,7 @@ jobs:
           uv sync --all-groups
 
       - name: Download coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -142,7 +150,7 @@ jobs:
           uv run python -m nox --session=coverage -- xml -i
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4.5.0
-        env:
-          CODECOV_TOKEN: {{ "${{ secrets.CODECOV_TOKEN }}" }}
-          file: ./coverage.xml
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        with:
+          token: {{ "${{ secrets.CODECOV_TOKEN }}" }}
+          files: ./coverage.xml

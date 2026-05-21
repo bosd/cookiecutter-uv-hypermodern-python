@@ -25,15 +25,13 @@ def get_ext_modules():
     """
     if os.environ.get("{{cookiecutter.package_name | upper}}_COMPILE_MYPYC") == "1":
         print("Compiling with mypyc...")
-        # Add the paths to the Python modules you want to compile here.
-        # For example:
-        # return mypycify([
-        #     "src/{{cookiecutter.package_name}}/__main__.py",
-        #     "src/{{cookiecutter.package_name}}/some_other_module.py",
-        # ])
+        # Add the paths to the fully typed Python modules you want to compile.
+        # Do NOT compile the Click CLI in ``__main__.py``: Click's decorators set
+        # attributes on the function object, which fails on a compiled function.
+        # Keep the CLI as thin pure-Python glue and compile your logic instead.
         return mypycify(
             [
-                "src/{{cookiecutter.package_name}}/__main__.py",
+                "src/{{cookiecutter.package_name}}/core.py",
             ]
         )
 

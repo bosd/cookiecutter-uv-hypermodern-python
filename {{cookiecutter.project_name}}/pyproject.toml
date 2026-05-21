@@ -3,7 +3,7 @@ name = "{{cookiecutter.project_name}}"
 version = "{{cookiecutter.version}}"
 description = "{{cookiecutter.friendly_name}}"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "{{cookiecutter.license}}"}
 authors = [
   {name = "{{cookiecutter.author}}", email = "{{cookiecutter.email}}"},
@@ -26,31 +26,39 @@ Changelog = "https://github.com/{{cookiecutter.github_user}}/{{cookiecutter.proj
 
 [dependency-groups]
 dev = [
-  "coverage[toml] >= 6.2",
-  "pre-commit >=2.16.0",
-  "pre-commit-hooks >=4.6.0",
-  "pytest >=6.2.5",
-  "pygments >=2.10.0",
+  "coverage[toml] >= 7.6",
+  "pre-commit >= 4.0",
+  "pre-commit-hooks >= 5.0",
+  "pytest >= 8.3",
+  "pytest-cov >= 5.0",
+  "pytest-mock >= 3.14",
+  "pytest-xdist >= 3.6",
+  "pytest-randomly >= 3.15",
+  "pygments >= 2.18",
 ]
 lint = [
-  "ruff >=0.5.5",
-  "pydoclint >=0.5.0",
+  "ruff >= 0.8",
+  "pydoclint >= 0.5.0",
+  "zizmor >= 1.20",
 ]
 docs = [
-  "furo >=2021.11.12",
-  "myst-parser == 3.0.1",
-  "sphinx >= 4.3.2",
-  "sphinx-autobuild >=2021.3.14",
-  "sphinx-click >=3.0.2",
+  "shibuya >= 2025.1.29",
+  "sphinx >= 8.0",
+  "sphinx-autobuild >= 2024.10",
+  "sphinx-click >= 6.0",
+  "myst-parser >= 4.0",
 ]
 mypy = [
-  "mypy >=0.930"
+  "mypy >= 1.13"
+]
+ty = [
+  "ty >= 0.0.1"
 ]
 typeguard = [
-  "typeguard >=2.13.3"
+  "typeguard >= 4.4"
 ]
 xdoctest = [
-  "xdoctest[colors] >=0.15.10"
+  "xdoctest[colors] >= 1.2"
 ]
 
 [tool.setuptools.packages.find]
@@ -60,7 +68,7 @@ where = ["src"]
 package = true
 
 [project.scripts]
-{{cookiecutter.project_name}} = "{{cookiecutter.package_name}}.__main__:cli"
+{{cookiecutter.project_name}} = "{{cookiecutter.package_name}}.__main__:main"
 
 [build-system]
 # When using mypyc, you must list all dependencies used by the compiled
@@ -97,18 +105,29 @@ show_error_context = true
 
 [tool.ruff]
 src = ["src", "tests"]
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
+  "ASYNC", # flake8-async
   "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
   "C90",  # mccabe
   "D",    # pydocstyle
   "E",    # pycodestyle
   "F",    # pyflakes
+  "FURB", # refurb
   "I",    # isort
+  "LOG",  # flake8-logging
   "N",    # pep8-naming
+  "PERF", # perflint
+  "PIE",  # flake8-pie
+  "PTH",  # flake8-use-pathlib
+  "RET",  # flake8-return
   "RUF",  # Ruff-specific rules
   "S",    # flake8-bandit
+  "SIM",  # flake8-simplify
+  "TRY",  # tryceratops
   "UP",   # pyupgrade
   "W",    # pycodestyle
 ]

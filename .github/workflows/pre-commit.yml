@@ -5,12 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     name: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - name: Create uv environment
         run: uv venv
       - name: Install dependencies
@@ -23,6 +23,7 @@ jobs:
         shell: python
         run: |
           import hashlib
+          import os
           import sys
 
           python = "py{}.{}".format(*sys.version_info[:2])
@@ -30,8 +31,9 @@ jobs:
           digest = hashlib.sha256(payload).hexdigest()
           result = "${{ runner.os }}-{}-{}-pre-commit".format(python, digest)
 
-          print("::set-output name=result::{}".format(result))
-      - uses: actions/cache@v4
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write("result={}\n".format(result))
+      - uses: actions/cache@v5
         if: matrix.os != 'windows-latest'
         with:
           path: ~/.cache/pre-commit

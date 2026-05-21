@@ -5,12 +5,12 @@ jobs:
     name: Build documentation & check links
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - name: Create uv environment
         run: uv venv
       - name: Install dependencies
@@ -19,7 +19,7 @@ jobs:
           uv pip install --constraint=.github/workflows/constraints.txt nox
       - name: Build documentation
         run: uv run nox --force-color --session=docs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: docs
           path: docs/_build

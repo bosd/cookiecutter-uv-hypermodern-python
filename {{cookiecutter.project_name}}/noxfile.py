@@ -22,11 +22,12 @@ for f in glob.glob('src/{{cookiecutter.package_name}}/*.c'): os.remove(f);
 nox.options.default_venv_backend = "uv"
 
 package = "{{cookiecutter.package_name}}"
-python_versions = ["3.12", "3.13", "3.11", "3.10", "3.9"]
+python_versions = ["3.12", "3.13", "3.11", "3.10", "3.14"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
     "mypy",
+    "ty",
     "tests",
     "typeguard",
     "xdoctest",
@@ -127,6 +128,8 @@ def precommit(session: nox.Session) -> None:
         "dev",
         "--group",
         "lint",
+        "--group",
+        "ty",
         external=True,
     )
     session.run("pre-commit", *args, external=True)
@@ -157,6 +160,25 @@ def mypy(session: nox.Session) -> None:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
 
 
+@nox.session(python=python_versions[0])
+def ty(session: nox.Session) -> None:
+    """Type-check using ty (Astral, beta).
+
+    Runs alongside mypy, which remains the authoritative type checker until ty
+    reaches a stable release.
+    """
+    args = session.posargs or ["src", "tests"]
+    session.run(
+        "uv",
+        "sync",
+        "--group",
+        "ty",
+        external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+    session.run("ty", "check", *args)
+
+
 @nox.session(python=python_versions)
 def tests(session: nox.Session) -> None:
     """Run the test suite."""
@@ -166,14 +188,10 @@ def tests(session: nox.Session) -> None:
         "sync",
         "--group",
         "dev",
-        "--group",
-        "lint",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-
-    session.install("pytest", "coverage", "pytest-mock")
-    session.install("-e", ".")
-    session.run("pytest", *session.posargs)
+    session.run("pytest", "-n", "auto", *session.posargs)
 
 
 @nox.session(python=python_versions[0])
@@ -197,10 +215,12 @@ def coverage(session: nox.Session) -> None:
         "coverage[toml]",
         "pytest-cov",
         "pytest-mock",
+        "pytest-xdist",
+        "pytest-randomly",
     )
     session.install("-e", ".")
     session.log("Running pytest with coverage...")
-    session.run("pytest", "--cov=src", "--cov-report=xml")
+    session.run("pytest", "-n", "auto", "--cov=src", "--cov-report=xml")
 
     if not session.posargs and any(Path().glob(".coverage.*")):
         session.run("coverage", "combine")
@@ -260,20 +280,10 @@ def docs_build(session: nox.Session) -> None:
         "uv",
         "sync",
         "--group",
-        "dev",
-        "--group",
         "docs",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.install(
-        "sphinx",
-        "sphinx-mermaid",
-        "sphinx-click",
-        "myst_parser",
-        "shibuya",
-        "sphinx-copybutton",
-    )
-    session.install("-e", ".")
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
