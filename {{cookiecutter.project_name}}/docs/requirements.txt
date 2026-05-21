@@ -1,4 +1,6 @@
+# Mirrors the [dependency-groups] "docs" set in pyproject.toml.
+# Used by Read the Docs to build the documentation.
 shibuya
-sphinx==7.4.7
-sphinx-click==5.2.1
-myst_parser==4.0.0
+sphinx
+sphinx-click
+myst-parser
