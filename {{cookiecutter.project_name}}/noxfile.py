@@ -32,7 +32,6 @@ nox.options.sessions = (
     "typeguard",
     "xdoctest",
     "docs-build",
-    "docs-linkcheck",
 )
 
 
