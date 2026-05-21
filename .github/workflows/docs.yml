@@ -19,7 +19,7 @@ jobs:
           uv pip install --constraint=.github/workflows/constraints.txt nox
       - name: Build documentation
         run: uv run nox --force-color --session=docs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: docs
           path: docs/_build
