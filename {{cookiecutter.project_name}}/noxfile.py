@@ -173,9 +173,8 @@ def ty(session: nox.Session) -> None:
         "--group",
         "ty",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.install("ty")
-    session.install("-e", ".")
     session.run("ty", "check", *args)
 
 
@@ -188,15 +187,9 @@ def tests(session: nox.Session) -> None:
         "sync",
         "--group",
         "dev",
-        "--group",
-        "lint",
         external=True,
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-
-    session.install(
-        "pytest", "coverage", "pytest-mock", "pytest-xdist", "pytest-randomly"
-    )
-    session.install("-e", ".")
     session.run("pytest", "-n", "auto", *session.posargs)
 
 
