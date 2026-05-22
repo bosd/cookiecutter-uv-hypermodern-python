@@ -1,5 +1,16 @@
 # cookiecutter-uv-hypermodern-python
 
+> [!IMPORTANT]
+> **Superseded by [uv-forge](https://github.com/bosd/uv-forge).** uv-forge is a maintained
+> [Copier](https://copier.readthedocs.io/) template with the same hypermodern stack, plus in-place
+> updates (`copier update`) and options (docs host, compiled extensions). Start new projects with:
+>
+> ```console
+> uvx --with jinja2-time copier copy --trust gh:bosd/uv-forge my-project
+> ```
+>
+> This cookiecutter template still works but is no longer actively developed.
+
 <!-- badges-begin -->
 
 [![Status][status badge]][status badge]
